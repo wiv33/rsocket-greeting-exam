@@ -3,11 +3,13 @@ package org.psawesome.consumer.mvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.psawesome.consumer.dto.GreetingRequest;
+import org.psawesome.consumer.dto.GreetingResponse;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * author: ps [https://github.com/wiv33/rsocket-greeting-exam]
@@ -20,8 +22,7 @@ class GreetingRestControllerTest {
 
   @BeforeEach
   void setUp() {
-    client = WebTestClient.bindToServer()
-            .baseUrl("http://localhost:8080/greet")
+    client = WebTestClient.bindToController(GreetingRestController.class)
             .build();
   }
 
@@ -29,20 +30,27 @@ class GreetingRestControllerTest {
   void testGreeting() {
     GreetingRequest expect = new GreetingRequest("ps");
     StepVerifier.create(client.get()
-            .uri("/{name}", "ps")
+            .uri("/greet/{name}", "ps")
             .exchange()
-            .returnResult(GreetingRequest.class)
-            .getResponseBody())
-            .expectNext(expect)
+            .returnResult(GreetingResponse.class)
+            .getResponseBody()
+    )
+            .consumeNextWith(greetingResponse ->
+                    assertTrue(greetingResponse.getName().contains("ps"))
+            )
             .expectComplete()
             .verify();
   }
 
   @Test
-  void testGreetingFail() {
-    assertThrows(RuntimeException.class, () -> client.get()
-            .uri("/{name}", "ps")
+  void testGreetingNotEquals() {
+    client.get()
+            .uri("/greet-fail/{name}", "ps")
             .exchange()
-    );
+            .expectBody(ParameterizedTypeReference.forType(GreetingResponse.class))
+            .value(o ->
+                    assertTrue(o.toString().contains("ps")))
+
+    ;
   }
 }
