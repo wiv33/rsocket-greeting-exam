@@ -1,3 +1,4 @@
+/*
 package org.psawesome.producer.rsocket;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -11,3 +12,4 @@ public class MessageController {
     return new GreetResponse(request.getName());
   }
 }
+*/
