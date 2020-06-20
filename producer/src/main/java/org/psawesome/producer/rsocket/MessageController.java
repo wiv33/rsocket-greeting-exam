@@ -1,7 +1,7 @@
 package org.psawesome.producer.rsocket;
 
-import org.psawesome.producer.dto.GreetRequest;
-import org.psawesome.producer.dto.GreetResponse;
+import org.psawesome.producer.dto.GreetingRequest;
+import org.psawesome.producer.dto.GreetingResponse;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 public class MessageController {
 
   @MessageMapping("greet")
-  public GreetResponse greetResponse(GreetRequest request) {
-    return new GreetResponse(request.getName());
+  public GreetingResponse greetResponse(GreetingRequest request) {
+    return new GreetingResponse(request.getName());
   }
 }

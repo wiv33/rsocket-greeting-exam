@@ -1,4 +1,4 @@
-package org.psawesome.producer.dto;
+package org.psawesome.consumer.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,14 +11,14 @@ import java.time.Instant;
  */
 @Data
 @NoArgsConstructor
-public class GreetResponse {
+public class GreetingResponse {
   String name;
 
-  public GreetResponse(String name) {
-    GreetResponse res = withGreeting("Hello " + name + " @ " + Instant.now());
+  public GreetingResponse(String name) {
+    GreetingResponse res = withGreetinging("Hello " + name + " @ " + Instant.now());
   }
 
-  private GreetResponse withGreeting(String msg) {
+  private GreetingResponse withGreetinging(String msg) {
     this.name = msg;
     return this;
   }
