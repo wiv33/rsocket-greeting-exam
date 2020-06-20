@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.psawesome.consumer.dto.GreetingRequest;
 import org.psawesome.consumer.dto.GreetingResponse;
 import org.reactivestreams.Publisher;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,4 +28,10 @@ public class GreetingRestController {
             .retrieveMono(GreetingResponse.class);
   }
 
+  @GetMapping(value = "/greet/stream/{name}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public Publisher<GreetingResponse> greetingResponseStream(@PathVariable String name) {
+    return requester.route("greet-stream")
+            .data(new GreetingRequest(name))
+            .retrieveFlux(GreetingResponse.class);
+  }
 }
