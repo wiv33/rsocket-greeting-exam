@@ -22,7 +22,6 @@ class GreetingRestControllerTest {
 
   @BeforeEach
   void setUp() {
-
     client = WebTestClient.bindToController(GreetingRestController.class)
             .build();
   }
