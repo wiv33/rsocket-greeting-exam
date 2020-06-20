@@ -26,12 +26,12 @@ class MessageControllerTest {
 
   public static RSocketRequester requesterBlock;
   public static Mono<RSocketRequester> requester;
-  
+
   @BeforeEach
   static void setUp(@Autowired RSocketRequester.Builder builder) {
     requesterBlock = builder.connectTcp("localhost", 7000)
             .block(Duration.ofSeconds(3));
-    
+
     requester = builder.connectTcp("localhost", 7500);
   }
 
@@ -42,10 +42,11 @@ class MessageControllerTest {
             .data(new GreetRequest("ps"))
             .retrieveMono(GreetResponse.class))
             .assertNext(res -> Assertions.assertAll(
-                    ()-> assertNotNull(res)
+                    () -> assertNotNull(res),
+                    () -> assertTrue(res.getName().contains("ps"))
             ))
-    .expectComplete()
-    .verify();
+            .expectComplete()
+            .verify();
   }
 
   @Test
