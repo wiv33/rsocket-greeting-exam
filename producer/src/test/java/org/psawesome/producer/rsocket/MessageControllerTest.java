@@ -1,12 +1,15 @@
 package org.psawesome.producer.rsocket;
 
+import io.rsocket.exceptions.ApplicationErrorException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.psawesome.producer.dto.GreetRequest;
 import org.psawesome.producer.dto.GreetResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -26,18 +29,23 @@ class MessageControllerTest {
   public RSocketRequester requesterBlock;
   public Mono<RSocketRequester> requester;
 
+  GreetRequest greetRequest;
+
   @BeforeEach
   void setUp(@Autowired RSocketRequester.Builder builder) {
     requesterBlock = builder.connectTcp("localhost", 7000)
             .block(Duration.ofSeconds(3));
-
     requester = builder.connectTcp("localhost", 7500);
+
+    greetRequest = null;
   }
 
   @Test
+  @DisplayName("should be request and response by requesterBlock")
   void testBlockRetrieve() {
+    greetRequest = new GreetRequest("ps");
     StepVerifier.create(requesterBlock.route("greet")
-            .data(new GreetRequest("ps"))
+            .data(greetRequest)
             .retrieveMono(GreetResponse.class)
             .log())
             .assertNext(res -> Assertions.assertAll(
@@ -49,10 +57,12 @@ class MessageControllerTest {
   }
 
   @Test
+  @DisplayName("should be req res by requester.subscribe()")
   void testRetrieve() {
     requester.subscribe(requester -> {
+      greetRequest = new GreetRequest("ps");
       StepVerifier.create(requester.route("greet-non")
-              .data(new GreetRequest("ps"))
+              .data(greetRequest)
               .retrieveMono(GreetResponse.class)
               .log())
               .assertNext(res -> Assertions.assertAll(
@@ -63,4 +73,15 @@ class MessageControllerTest {
               .verify();
     });
   }
+
+  @Test
+  @DisplayName("should be not found route [] greet-fail")
+  @MessageExceptionHandler(ApplicationErrorException.class)
+  void testFail() {
+    greetRequest = new GreetRequest("ps");
+    requesterBlock.route("greet-fail")
+            .data(greetRequest)
+            .send();
+  }
+
 }
