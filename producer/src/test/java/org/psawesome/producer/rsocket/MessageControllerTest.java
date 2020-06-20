@@ -3,6 +3,8 @@ package org.psawesome.producer.rsocket;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.psawesome.producer.dto.GreetRequest;
+import org.psawesome.producer.dto.GreetResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -12,6 +14,7 @@ import reactor.test.StepVerifier;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * author: ps [https://github.com/wiv33/rsocket-greeting-exam]
@@ -20,11 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest
 class MessageControllerTest {
 
-  public static RSocketRequester requesterBlock;
-  public static Mono<RSocketRequester> requester;
+  public RSocketRequester requesterBlock;
+  public Mono<RSocketRequester> requester;
 
   @BeforeEach
-  static void setUp(@Autowired RSocketRequester.Builder builder) {
+  void setUp(@Autowired RSocketRequester.Builder builder) {
     requesterBlock = builder.connectTcp("localhost", 7000)
             .block(Duration.ofSeconds(3));
 
@@ -33,10 +36,10 @@ class MessageControllerTest {
 
   @Test
   void testBlockRetrieve() {
-
     StepVerifier.create(requesterBlock.route("greet")
             .data(new GreetRequest("ps"))
-            .retrieveMono(GreetResponse.class))
+            .retrieveMono(GreetResponse.class)
+            .log())
             .assertNext(res -> Assertions.assertAll(
                     () -> assertNotNull(res),
                     () -> assertTrue(res.getName().contains("ps"))
@@ -48,9 +51,16 @@ class MessageControllerTest {
   @Test
   void testRetrieve() {
     requester.subscribe(requester -> {
-      requester.route("greet-non")
+      StepVerifier.create(requester.route("greet-non")
               .data(new GreetRequest("ps"))
-              .retrieveMono(GreetResponse.class);
+              .retrieveMono(GreetResponse.class)
+              .log())
+              .assertNext(res -> Assertions.assertAll(
+                      () -> assertNotNull(res),
+                      () -> assertTrue(res.getName().contains("ps"))
+              ))
+              .expectComplete()
+              .verify();
     });
   }
 }
